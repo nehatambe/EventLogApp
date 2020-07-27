@@ -1,0 +1,33 @@
+operation,timestamp,object type,object id,new values
+CREATE,2018-07-23T11:09:34Z,INVOICE,INV1,"{
+'id': 'INV1',
+'amount': '120.00',
+'currency': 'USD',
+'items': 2,
+'status': 'DRAFT'
+}"
+CREATE,2018-07-23T11:02:00Z,INVOICE,INV2,"{
+'id': 'INV2',
+'amount': '80.00',
+'currency': 'USD',
+'status': 'DRAFT'
+}"
+UPDATE,2018-07-23T11:20:34Z,INVOICE,INV1,"{
+'amount': '124.00',
+'items': 4
+}"
+UPDATE,2018-07-23T11:15:10Z,INVOICE,INV1,"{
+'items': 3
+}"
+DELETE,2018-07-23T12:00:00Z,INVOICE,INV2,
+CREATE,2018-07-24T01:02:17Z,INVOICE,INV2,"{
+'id': 'INV2',
+'amount': '88.00',
+'currency': 'USD',
+'items': 5,
+'status': 'DRAFT'
+}"
+UPDATE,2018-07-23T11:28:34Z,INVOICE,INV1,"{
+'amount': '124.40',
+'status': 'NEW'
+}"
