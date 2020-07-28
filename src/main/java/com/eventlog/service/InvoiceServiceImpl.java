@@ -1,7 +1,6 @@
 package com.eventlog.service;
 
 import com.eventlog.dto.EventLogObjectDto;
-import com.eventlog.enums.LogObjectType;
 import com.eventlog.enums.Operation;
 import com.eventlog.exception.InvoiceNotFoundException;
 import com.eventlog.dto.EventLogDto;
@@ -9,6 +8,9 @@ import com.eventlog.dto.InvoiceDto;
 import com.eventlog.model.Invoice;
 import com.eventlog.repository.InvoiceRepository;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -75,13 +79,27 @@ public class InvoiceServiceImpl implements LogObjectService {
     }
 
     @Override
-    public List<Invoice> findByIds(Set<String> invoiceIds) {
-        return invoiceRepository.findAllById(invoiceIds);
+    public void generateJsonFiles(Set<String> invoiceIds){
+        List<Invoice> invoiceList = invoiceRepository.findAllById(invoiceIds);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        invoiceList.forEach(invoice -> {
+            String fileName = invoice.getId()+".json";
+            try {
+                objectMapper.writeValue(new File(fileName), invoice);
+
+            } catch (IOException e) {
+                LOGGER.debug("Error in generating json file",e);
+            }
+
+        });
     }
 
     @Override
-    public boolean match(LogObjectType logObjectType) {
-        return logObjectType.equals(LogObjectType.INVOICE);
+    public String getServiceName() {
+        return "Invoice";
     }
+
 
 }

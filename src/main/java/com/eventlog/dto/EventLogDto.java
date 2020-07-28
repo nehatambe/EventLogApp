@@ -1,6 +1,5 @@
 package com.eventlog.dto;
 
-import com.eventlog.enums.LogObjectType;
 import com.eventlog.enums.Operation;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
@@ -21,14 +20,14 @@ public class EventLogDto<T> {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss.SSSZ")
     private Date timestamp;
 
-    LogObjectType objectType;
+    String objectType;
     String objectId;
     T payload;
 
     public EventLogDto() {
     }
 
-    public EventLogDto(Operation operationType, Date timestamp, LogObjectType objectType, String objectId, T payload) {
+    public EventLogDto(Operation operationType, Date timestamp, String objectType, String objectId, T payload) {
         this.operationType = operationType;
         this.timestamp = timestamp;
         this.objectType = objectType;
@@ -52,11 +51,11 @@ public class EventLogDto<T> {
         this.timestamp = timestamp;
     }
 
-    public LogObjectType getObjectType() {
+    public String getObjectType() {
         return objectType;
     }
 
-    public void setObjectType(LogObjectType objectType) {
+    public void setObjectType(String objectType) {
         this.objectType = objectType;
     }
 
@@ -86,7 +85,7 @@ public class EventLogDto<T> {
         } catch (JsonProcessingException e) {
             LOGGER.debug("Error in converting invoice dto to json string",e);
         }
-        return new String[]{operationType.toString(),formattedDate,objectType.toString(),objectId,jsonVal};
+        return new String[]{operationType.toString(),formattedDate,objectType,objectId,jsonVal};
     }
 
     @Override

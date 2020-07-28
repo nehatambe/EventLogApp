@@ -36,10 +36,10 @@ public class Invoice implements Serializable {
         @Column(name = "ITEMS")
         private Integer items;
 
-        @Column(name = "CREATED_DTM")
+        /*@Column(name = "CREATED_DTM")
         @CreatedDate
         @Temporal(TemporalType.TIMESTAMP)
-        private Date createdDate;
+        private Date createdDate;*/
 
         public Invoice() {
         }
@@ -92,13 +92,13 @@ public class Invoice implements Serializable {
         this.items = items;
     }
 
-    public Date getCreatedDate() {
+    /*public Date getCreatedDate() {
         return createdDate;
     }
 
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
-    }
+    }*/
 
     @Override
     public String toString() {
@@ -108,7 +108,7 @@ public class Invoice implements Serializable {
                 ", currency=" + currency +
                 ", status='" + status + '\'' +
                 ", items=" + items +
-                ", createdDate=" + createdDate +
+                //", createdDate=" + createdDate +
                 '}';
     }
 }

@@ -2,6 +2,8 @@ plugins {
 	id 'org.springframework.boot' version '2.3.1.RELEASE'
 	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
 	id 'java'
+	id 'jacoco'
+	id "org.sonarqube" version "3.0"
 }
 
 group = 'com.eventlog'
@@ -24,6 +26,23 @@ dependencies {
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
+
+jacocoTestReport {
+	group = "Reporting"
+	description = "Generate Jacoco coverage reports after running tests."
+	reports {
+		xml {
+			enabled true
+			destination file("${buildDir}/reports/jacoco/jacoco.xml")
+		}
+		csv.enabled false
+		html {
+			enabled true
+			destination file("${buildDir}/jacocoHtml")
+		}
+	}
+}
+
 
 test {
 	useJUnitPlatform()

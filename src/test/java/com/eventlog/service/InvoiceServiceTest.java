@@ -13,26 +13,30 @@ import com.eventlog.repository.InvoiceRepository;
 import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.eventlog.utils.TestCreateObjectUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = Configuration.class)
 public class InvoiceServiceTest {
 
 
@@ -48,35 +52,47 @@ public class InvoiceServiceTest {
     @MockBean
     ModelMapper modelMapper;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
+    Invoice invoice;
+    EventLogDto eventLogDto;
+    InvoiceDto invoiceDto;
+
+    @TestConfiguration
+    static class InvoiceServiceImplTestContextConfiguration {
+
+        @Bean
+        public LogObjectService invoiceService() {
+            return new InvoiceServiceImpl();
+        }
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        invoice = TestCreateObjectUtils.getInvoice(INVOICE_ID);
+        eventLogDto = TestCreateObjectUtils.getEventLogDto(INVOICE_ID,Operation.CREATE);
+        invoiceDto = TestCreateObjectUtils.getInvoiceDto(INVOICE_ID);
+    }
+
     @Test
     public void whenValidInvoiceDataWithId_createInvoice_thenSuccess() {
 
-        Mockito.when(modelMapper.map(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(getInvoice());
-        BDDMockito.given(invoiceRepository.save(ArgumentMatchers.any(Invoice.class))).willReturn(getInvoice());
-        Invoice invoice = invoiceService.create(getInvoiceDto(INVOICE_ID));
-        Assert.assertNotNull(invoice);
-        assertThat(invoice.getId())
-                .isEqualTo(INVOICE_ID);
+        Mockito.when(modelMapper.map(any(), any())).thenReturn(invoice);
+        BDDMockito.given(invoiceRepository.save(any(Invoice.class))).willReturn(invoice);
+        invoiceService.create(invoiceDto);
     }
 
     @Test
     public void whenValidInvoiceDataWithId_updateInvoice_thenSuccess() {
         BigDecimal newAmount = new BigDecimal(140);
         //change amount
-        InvoiceDto invoiceDto = getInvoiceDto(INVOICE_ID);
         invoiceDto.setAmount(newAmount);
-        Invoice invoice = getInvoice();
         invoice.setAmount(newAmount);
-        BDDMockito.given(invoiceRepository.findById(ArgumentMatchers.any(String.class))).willReturn(Optional.of(invoice));
+        BDDMockito.given(invoiceRepository.findById(any(String.class))).willReturn(Optional.of(invoice));
 
-        BDDMockito.given(invoiceRepository.save(ArgumentMatchers.any(Invoice.class))).willReturn(invoice);
-        Invoice invoice1 = invoiceService.update(invoiceDto);
-
-        Assert.assertNotNull(invoice1);
-        assertThat(invoice.getId())
-                .isEqualTo(INVOICE_ID);
-        assertThat(invoice.getAmount())
-                .isEqualTo(newAmount);
+        BDDMockito.given(invoiceRepository.save(any(Invoice.class))).willReturn(invoice);
+        invoiceService.update(invoiceDto);
 
     }
 
@@ -84,23 +100,20 @@ public class InvoiceServiceTest {
     public void whenInvalidInvoiceDataWithId_updateInvoice_thenThrowException() {
         BigDecimal newAmount = new BigDecimal(140);
         //change amount
-        InvoiceDto invoiceDto = getInvoiceDto(INVOICE_ID);
         invoiceDto.setAmount(newAmount);
-        Invoice invoice = getInvoice();
         invoice.setAmount(newAmount);
-        BDDMockito.given(invoiceRepository.findById(ArgumentMatchers.any(String.class))).willReturn(Optional.empty());
+        BDDMockito.given(invoiceRepository.findById(any(String.class))).willReturn(Optional.empty());
 
-        BDDMockito.given(invoiceRepository.save(ArgumentMatchers.any(Invoice.class))).willReturn(invoice);
-        Invoice invoice1 = invoiceService.update(invoiceDto);
+        BDDMockito.given(invoiceRepository.save(any(Invoice.class))).willReturn(invoice);
+        invoiceService.update(invoiceDto);
 
     }
 
     @Test(expected = InvoiceNotFoundException.class)
     public void whenInvalidInvoiceDataWithId_deleteInvoice_thenThrowException() {
 
-        BDDMockito.given(invoiceRepository.findById(ArgumentMatchers.any(String.class))).willReturn(Optional.empty());
-
-        Mockito.doNothing().when(invoiceRepository).deleteById(ArgumentMatchers.any(String.class));
+        BDDMockito.given(invoiceRepository.findById(any(String.class))).willReturn(Optional.empty());
+        Mockito.doNothing().when(invoiceRepository).deleteById(any(String.class));
         invoiceService.delete(INVOICE_ID);
 
     }
@@ -108,42 +121,23 @@ public class InvoiceServiceTest {
     @Test
     public void whenValidInvoiceDataWithId_processInvoiceData_thenSuccess() {
 
-
+        BDDMockito.given(invoiceRepository.findById(any(String.class))).willReturn(Optional.empty());
+        Mockito.doNothing().when(invoiceRepository).deleteById(any(String.class));
+        BDDMockito.given(invoiceRepository.save(any(Invoice.class))).willReturn(invoice);
+        invoiceService.performOperations(eventLogDto);
     }
 
-    private Invoice getInvoice(){
-        Invoice invoice = new Invoice(INVOICE_ID,new BigDecimal(120.0), Currency.USD, Status.DRAFT,2);
-        return invoice;
+    @Test
+    public void whenValidInvoiceDataWithId_generateJsonFiles_thenSuccess() throws IOException {
+        Set<String> ids = new HashSet<>();
+        ids.add(INVOICE_ID);
+        ids.add(INVOICE_ID_2);
+        BDDMockito.given(invoiceRepository.findAllById(any(Set.class))).willReturn(TestCreateObjectUtils.getInvoiceList());
+        Mockito.doNothing().when(objectMapper).writeValue(any(File.class),any(Object.class));
+        invoiceService.generateJsonFiles(ids);
     }
 
-    private InvoiceDto getInvoiceDto(String invoiceId){
-        InvoiceDto invoiceDto = new InvoiceDto(invoiceId,new BigDecimal(120.0), Currency.USD, Status.DRAFT,2);
-        return invoiceDto;
-    }
 
-    private List<InvoiceDto> getInvoiceDtoList(){
-        List<InvoiceDto> invoiceDtoList = new ArrayList<>();
-        InvoiceDto invoiceDto = getInvoiceDto(INVOICE_ID);
-        invoiceDtoList.add(invoiceDto);
-        invoiceDto = getInvoiceDto(INVOICE_ID_2);
-        invoiceDtoList.add(invoiceDto);
-        return invoiceDtoList;
-    }
 
-    private EventLogDto getEventLogDto(String invoiceId, Operation operationType){
-        EventLogDto eventLogDto = new EventLogDto();
-        eventLogDto.setObjectId(invoiceId);
-        eventLogDto.setOperationType(operationType);
-        eventLogDto.setTimestamp(new Date());
-        eventLogDto.setObjectType("INVOICE");
-
-        return eventLogDto;
-    }
-
-    private List<EventLogDto> getEventLogDtoList(){
-        List<EventLogDto> eventLogDtoList = new ArrayList<>();
-
-        return eventLogDtoList;
-    }
 
 }
