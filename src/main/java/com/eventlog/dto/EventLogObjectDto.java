@@ -1,4 +1,3 @@
 package com.eventlog.dto;
 
-public class EventLogObjectDto {
-}
+public class EventLogObjectDto {}

@@ -1,26 +1,23 @@
 package com.eventlog.service;
 
 import com.eventlog.dto.EventLogDto;
-import com.eventlog.dto.EventLogObjectFactory;
 import com.eventlog.dto.EventLogObjectDto;
+import com.eventlog.dto.EventLogObjectFactory;
 import com.eventlog.enums.Operation;
-import com.eventlog.repository.InvoiceRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import java.io.*;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class IOServiceImpl implements IOService {
@@ -37,8 +34,7 @@ public class IOServiceImpl implements IOService {
 
       String[] record;
       while ((record = csvReader.readNext()) != null) {
-        System.out.println(record);
-        /*EventLogDto<EventLogObjectDto> eventLogDto = new EventLogDto<>();
+        EventLogDto<EventLogObjectDto> eventLogDto = new EventLogDto<>();
         eventLogDto.setOperationType(Operation.getByValue(record[0]));
         ZonedDateTime parsed = ZonedDateTime.parse(record[1]);
 
@@ -51,7 +47,7 @@ public class IOServiceImpl implements IOService {
         if (!StringUtils.isEmpty(payload)) {
           eventLogDto.setPayload(EventLogObjectFactory.getInstance(objectType, payload));
         }
-        dtos.add(eventLogDto);*/
+        dtos.add(eventLogDto);
       }
 
     } catch (IOException | CsvValidationException ioe) {
@@ -65,24 +61,23 @@ public class IOServiceImpl implements IOService {
     // Paths.get(ResourceUtils.getURL("classpath:Events.csv").toURI());
     return new CSVReaderBuilder(new FileReader(filePath)).withSkipLines(1).build();
   }
+
   @Override
   public void generateFiles(List<EventLogDto> eventLogDtos) {
     List<String[]> recordsList =
-        eventLogDtos.stream()
+        eventLogDtos
+            .stream()
             .map(eventLogDto -> eventLogDto.toStringArray())
             .collect(Collectors.toList());
-    try {
-      generateOutputCSV(recordsList);
-    } catch (IOException e) {
-        LOGGER.error("Error in generating the CSV file", e);
-    }
+    generateOutputCSV(recordsList);
   }
 
-  private void generateOutputCSV(List<String[]> arrayOfRecords) throws IOException {
+  private void generateOutputCSV(List<String[]> arrayOfRecords) {
     LOGGER.info("Generating new output csv file");
+    FileWriter fileWriter = null;
     CSVWriter csvWriter = null;
     try {
-      FileWriter fileWriter = new FileWriter("Events_Output.csv");
+      fileWriter = new FileWriter("Events_Output.csv");
       csvWriter = new CSVWriter(fileWriter);
       CSVWriter finalCsvWriter = csvWriter;
       arrayOfRecords.forEach(
@@ -90,8 +85,17 @@ public class IOServiceImpl implements IOService {
             finalCsvWriter.writeNext(record);
           });
 
-    } finally{
-      csvWriter.close();
+    } catch (IOException e) {
+      LOGGER.error("Error in generating the CSV file", e);
+    } finally {
+      try {
+        if (csvWriter != null) csvWriter.close();
+        if (fileWriter != null) fileWriter.close();
+
+      } catch (IOException e) {
+        LOGGER.error("Error in generating the CSV file", e);
+      }
+      ;
     }
   }
 }

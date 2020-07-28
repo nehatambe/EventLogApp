@@ -10,14 +10,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing
 public class EventLogAppApplication {
 
-	@Bean
-	public ModelMapper modelMapper() {
-		return new ModelMapper();
-	}
+  @Bean
+  public ModelMapper modelMapper() {
+    return new ModelMapper();
+  }
 
-	public static void main(String[] args) {
-		SpringApplication.run(EventLogAppApplication.class, args);
-
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(EventLogAppApplication.class, args);
+  }
 }

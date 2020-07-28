@@ -1,18 +1,14 @@
 package com.eventlog.service;
 
 import com.eventlog.dto.EventLogDto;
-import com.eventlog.enums.LogObjectType;
+import java.util.*;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.*;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -55,9 +51,9 @@ public class TaskServiceImpl implements TaskService {
     try {
       LogObjectService service =
           beanFactory.getBean(getServiceName(eventLogDto.getObjectType()), LogObjectService.class);
-      if (service != null) {
-        service.performOperations(eventLogDto);
-      }
+
+      service.performOperations(eventLogDto);
+
     } catch (BeansException e) {
       LOGGER.error("No bean found for given object type {}", eventLogDto.getObjectType());
     }
@@ -74,9 +70,9 @@ public class TaskServiceImpl implements TaskService {
           try {
             LogObjectService service =
                 beanFactory.getBean(getServiceName(logObjectType), LogObjectService.class);
-            if (service != null) {
-              service.generateJsonFiles(ids);
-            }
+
+            service.generateJsonFiles(ids);
+
           } catch (BeansException e) {
             LOGGER.error("No bean found for given object type {}", logObjectType);
           }

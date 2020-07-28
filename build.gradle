@@ -4,6 +4,7 @@ plugins {
 	id 'java'
 	id 'jacoco'
 	id "org.sonarqube" version "3.0"
+	id 'com.github.sherter.google-java-format' version '0.8'
 }
 
 group = 'com.eventlog'
@@ -21,7 +22,7 @@ dependencies {
 
 	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10'
 	compile group: 'org.modelmapper', name: 'modelmapper', version: '2.3.6'
-
+	compile 'com.google.googlejavaformat:google-java-format:1.7'
 	compile group: 'commons-io', name: 'commons-io', version: '2.6'
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -42,6 +43,15 @@ jacocoTestReport {
 		}
 	}
 }
+
+sonarqube {
+	properties {
+		property 'sonar.sources', "src/main/java"
+		property 'sonar.tests', "src/test/java"
+		property 'sonar.coverage.exclusions', "**/src/main/java/com/eventlog/dto/*"
+	}
+}
+
 
 
 test {
